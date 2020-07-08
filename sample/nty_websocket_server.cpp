@@ -121,10 +121,10 @@ void umask(char *data,int len,char *mask){
 }
 
 
-char* decode_packet(unsigned char *stream, char *mask, int length, int *ret) {
+char* decode_packet( char *stream, char *mask, int length, int *ret) {
 
 	nty_ophdr *hdr =  (nty_ophdr*)stream;
-	unsigned char *data = stream + sizeof(nty_ophdr);
+	char *data = stream + sizeof(nty_ophdr);
 	int size = 0;
 	int start = 0;
 	//char mask[4] = {0};
@@ -247,7 +247,7 @@ int handshake(int cli_fd) {
 	char buffer[MAX_BUFFER_LENGTH];    
 	char linebuf[128];    //Sec-WebSocket-Accept    
 	char sec_accept[32] = {0};    //sha1 data    
-	unsigned char sha1_data[SHA_DIGEST_LENGTH+1] = {0};    //reponse head buffer    
+	char sha1_data[SHA_DIGEST_LENGTH+1] = {0};    //reponse head buffer    
 	//char head[MAX_BUFFER_LENGTH] = {0};    
 
 #if 1

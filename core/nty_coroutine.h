@@ -180,7 +180,8 @@ typedef struct _nty_coroutine {
 	size_t stack_size;
 	size_t last_stack_size;
 	
-	nty_coroutine_status status;
+	// nty_coroutine_status status;
+	unsigned short status;
 	nty_schedule *sched;
 
 	uint64_t birth;
@@ -244,7 +245,7 @@ typedef struct _nty_coroutine_compute_sched {
 
 extern pthread_key_t global_sched_key;
 static inline nty_schedule *nty_coroutine_get_sched(void) {
-	return pthread_getspecific(global_sched_key);
+	return (nty_schedule*)pthread_getspecific(global_sched_key);
 }
 
 static inline uint64_t nty_coroutine_diff_usecs(uint64_t t1, uint64_t t2) {
@@ -295,13 +296,7 @@ ssize_t nty_sendto(int fd, const void *buf, size_t len, int flags,
 ssize_t nty_recvfrom(int fd, void *buf, size_t len, int flags,
                  struct sockaddr *src_addr, socklen_t *addrlen);
 
-
-
-
-
-
-
+void nty_schedule_run(void);
+int nty_connect(int fd, struct sockaddr *name, socklen_t namelen);
 
 #endif
-
-

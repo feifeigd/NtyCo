@@ -84,8 +84,7 @@ void server_reader(void *arg) {
 
 void server(void *arg) {
 
-	unsigned short port = *(unsigned short *)arg;
-	free(arg);
+	unsigned short port = (unsigned short )(uintptr_t)arg;
 
 	int fd = nty_socket(AF_INET, SOCK_STREAM, 0);
 	if (fd < 0) return ;
@@ -133,9 +132,8 @@ int main(int argc, char *argv[]) {
 	int i = 0;
 	unsigned short base_port = 9096;
 	for (i = 0;i < 100;i ++) {
-		unsigned short *port = calloc(1, sizeof(unsigned short));
-		*port = base_port + i;
-		nty_coroutine_create(&co, server, port); ////////no run
+		unsigned short port = base_port + i;
+		nty_coroutine_create(&co, server, (void*)port); ////////no run
 	}
 
 	nty_schedule_run(); //run

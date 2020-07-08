@@ -511,7 +511,7 @@ void serve_file(int client)
 
 void server(void *arg) {
 
-	int fd = *(int *)arg;
+	int fd = (int)(uintptr_t)arg;
 
 	int epfd = epoll_create(1);
     struct epoll_event events[MAX_EPOLLSIZE];
@@ -645,9 +645,8 @@ int mulcore_entry(int begin_port) {
 	int i = 0;
 	unsigned short base_port = begin_port;
 
-	unsigned short *port = calloc(1, sizeof(unsigned short));
-	*port = base_port;
-	server(port);
+	unsigned short port = base_port;
+	server((void*)port);
 
 }
 
@@ -696,7 +695,7 @@ int main(int argc, char *argv[]) {
 	socklen_t  client_name_len = sizeof(client_name);
 
 	int fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (fd < 0) return ;
+	if (fd < 0) return -1;
 
     ntySetNonblock(fd);
     ntySetReUseAddr(fd);

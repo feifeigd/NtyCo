@@ -48,7 +48,7 @@ pthread_key_t global_sched_key;
 static pthread_once_t sched_key_once = PTHREAD_ONCE_INIT;
 
 
-int _switch(nty_cpu_ctx *new_ctx, nty_cpu_ctx *cur_ctx);
+extern "C" int _switch(nty_cpu_ctx *new_ctx, nty_cpu_ctx *cur_ctx);
 
 static void _exec(void *lt) {
 #if defined(__lvm__) && defined(__x86_64__)
@@ -80,7 +80,7 @@ void nty_coroutine_free(nty_coroutine *co) {
 	}
 #endif
 	if (co) {
-		free(co);
+		delete(co);
 	}
 
 }
@@ -106,12 +106,13 @@ void nty_coroutine_yield(nty_coroutine *co) {
 
 static inline void nty_coroutine_madvise(nty_coroutine *co) {
 
-	size_t current_stack = (co->stack + co->stack_size) - co->ctx.esp;
+	// size_t current_stack = (co->stack + co->stack_size) - co->ctx.esp;
+	size_t current_stack = ((char*)co->stack + co->stack_size) - (char*)co->ctx.esp;	// 能用的栈空间大小
 	assert(current_stack <= co->stack_size);
 
 	if (current_stack < co->last_stack_size &&
 		co->last_stack_size > co->sched->page_size) {
-		size_t tmp = current_stack + (-current_stack & (co->sched->page_size - 1));
+		size_t tmp = current_stack + (-current_stack & (co->sched->page_size - 1));	// 按 page_size 对齐
 		assert(madvise(co->stack, co->stack_size-tmp, MADV_DONTNEED) == 0);
 	}
 	co->last_stack_size = current_stack;
@@ -125,7 +126,7 @@ int nty_coroutine_resume(nty_coroutine *co) {
 
 	nty_schedule *sched = nty_coroutine_get_sched();
 	sched->curr_thread = co;
-	_switch(&co->ctx, &co->sched->ctx);
+	_switch(&co->ctx, &co->sched->ctx);	// 切换到co
 	sched->curr_thread = NULL;
 
 	nty_coroutine_madvise(co);
@@ -200,7 +201,7 @@ int nty_coroutine_create(nty_coroutine **new_co, proc_coroutine func, void *arg)
 		}
 	}
 
-	nty_coroutine *co = calloc(1, sizeof(nty_coroutine));
+	nty_coroutine *co = new nty_coroutine;
 	if (co == NULL) {
 		printf("Failed to allocate memory for new coroutine\n");
 		return -2;
@@ -209,7 +210,7 @@ int nty_coroutine_create(nty_coroutine **new_co, proc_coroutine func, void *arg)
 	int ret = posix_memalign(&co->stack, getpagesize(), sched->stack_size);
 	if (ret) {
 		printf("Failed to allocate stack for new coroutine\n");
-		free(co);
+		delete(co);
 		return -3;
 	}
 
